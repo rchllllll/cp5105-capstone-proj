@@ -1,9 +1,12 @@
+import torch.nn as nn
 from torch.utils.data import Dataset
 from torchvision.io import read_image
+import torchvision.transforms as T
 from pathlib import Path
 import random
 import numpy as np
 import os 
+from torch.utils.data import Dataset, DataLoader 
 
 class SiameseDataset(Dataset): 
 
@@ -13,7 +16,7 @@ class SiameseDataset(Dataset):
     self.num_samples = num_samples
 
     self.class_names = [name for name in os.listdir(self.images_folder_path) if os.path.isdir(os.path.join(self.images_folder_path, name))]
-    self.all_images = [[self.class_names[i] + "/" + name for name in os.listdir(self.images_folder_path + self.class_names[i])] for i in range(len(self.class_names))]
+    self.all_images = [[self.class_names[i] + "/" + name for name in os.listdir(self.images_folder_path + self.class_names[i]) if "ds_store" not in name.lower()] for i in range(len(self.class_names))]
 
     self.data = self.create_dataset()
 
@@ -50,3 +53,7 @@ class SiameseDataset(Dataset):
   def create_dataset(self): 
     x1, x2, c1, c2, y = self.get_sample()
     return x1, x2, c1, c2, y
+
+transforms = nn.Sequential(
+  T.Resize((228, 228))
+)

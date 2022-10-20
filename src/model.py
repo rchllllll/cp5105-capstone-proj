@@ -1,11 +1,12 @@
 import torch.nn as nn
 from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights
 
-from config import *
-
 class SiameseModel(nn.Module):
   
-  def __init__(self, emb_size = EMB_SIZE): 
+  # potential configurable arguments 
+  # channels: int, n_classes: int, dim_sizes: List[int], kernel_size: int, stride: int, padding: int, **kwargs
+  # pretrained model and weights 
+  def __init__(self, emb_size): 
     super(SiameseModel, self).__init__()
 
     self.weights = EfficientNet_V2_S_Weights.IMAGENET1K_V1
