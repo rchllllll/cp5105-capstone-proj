@@ -11,6 +11,13 @@ def dataloader(full_dataset, args):
     train_size = int(args.train_val_split * args.num_samples)
     val_size = args.num_samples - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size])
+            
+    folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
+    with open(f'{folder_path}train_dataset_b{args.batch_size}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+        pickle.dump(train_dataset, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(f'{folder_path}val_dataset_b{args.batch_size}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+        pickle.dump(val_dataset, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     trainloader = DataLoader(train_dataset,
                             num_workers = args.num_workers, 
                             batch_size = args.batch_size)
@@ -85,18 +92,18 @@ def train(model, criterion, optimizer, trainloader, valloader, args, device):
         val_loss_history.append(vloss_history)
 
         if (epoch + 1) % 10 == 0:
-            folder = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
-            if not os.path.exists(folder):
-                os.mkdir(folder)
-            with open(f'{folder}training_loss_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.txt', 'a+') as f:
+            folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
+            if not os.path.exists(folder_path):
+                os.mkdir(folder_path)
+            with open(f'{folder_path}training_loss_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.txt', 'a+') as f:
                 f.write(f'[{time.ctime()}] [Epoch {epoch}] train loss: {avg_tloss:.3f} val loss: {avg_vloss:.3f} train acc: {avg_tacc:.3f} val acc: {avg_vacc:.3f}')
 
-            model_path = f'{folder}siamese_model_e{epoch}_b{args.batch_size}_lr{args.lr}_num{args.num_samples}_emb{args.emb_size}.pth'
+            model_path = f'{folder_path}siamese_model_e{epoch}_b{args.batch_size}_lr{args.lr}_num{args.num_samples}_emb{args.emb_size}.pth'
             torch.save(model.state_dict(), model_path)
             
-            with open(f'{folder}train_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+            with open(f'{folder_path}train_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
                 pickle.dump(train_loss_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            with open(f'{folder}val_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+            with open(f'{folder_path}val_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
                 pickle.dump(val_loss_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 def test(): 
