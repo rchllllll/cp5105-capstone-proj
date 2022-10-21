@@ -7,15 +7,14 @@ import pickle
 from dataset import * 
 from model import * 
 
-def dataloader(full_dataset, args): 
+def dataloader(full_dataset, args, output_folder_path): 
     train_size = int(args.train_val_split * args.num_samples)
     val_size = args.num_samples - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size])
             
-    folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
-    with open(f'{folder_path}train_dataset_b{args.batch_size}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+    with open(f'{output_folder_path}train_dataset_b{args.batch_size}_n{args.num_samples}.pickle', 'wb+') as handle:
         pickle.dump(train_dataset, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open(f'{folder_path}val_dataset_b{args.batch_size}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+    with open(f'{output_folder_path}val_dataset_b{args.batch_size}_n{args.num_samples}.pickle', 'wb+') as handle:
         pickle.dump(val_dataset, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     trainloader = DataLoader(train_dataset,
@@ -27,7 +26,7 @@ def dataloader(full_dataset, args):
 
     return trainloader, valloader
 
-def train(model, criterion, optimizer, trainloader, valloader, args, device): 
+def train(model, criterion, optimizer, trainloader, valloader, args, device, output_folder_path): 
     
     best_vloss = 1_000_000.
     train_loss_history = []
@@ -92,18 +91,15 @@ def train(model, criterion, optimizer, trainloader, valloader, args, device):
         val_loss_history.append(vloss_history)
 
         if (epoch + 1) % 10 == 0:
-            folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
-            if not os.path.exists(folder_path):
-                os.mkdir(folder_path)
-            with open(f'{folder_path}training_loss_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.txt', 'a+') as f:
+            with open(f'{output_folder_path}training_loss_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.txt', 'a+') as f:
                 f.write(f'[{time.ctime()}] [Epoch {epoch}] train loss: {avg_tloss:.3f} val loss: {avg_vloss:.3f} train acc: {avg_tacc:.3f} val acc: {avg_vacc:.3f}')
 
-            model_path = f'{folder_path}siamese_model_e{epoch}_b{args.batch_size}_lr{args.lr}_num{args.num_samples}_emb{args.emb_size}.pth'
+            model_path = f'{output_folder_path}siamese_model_e{epoch}_b{args.batch_size}_lr{args.lr}_num{args.num_samples}_emb{args.emb_size}.pth'
             torch.save(model.state_dict(), model_path)
             
-            with open(f'{folder_path}train_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+            with open(f'{output_folder_path}train_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
                 pickle.dump(train_loss_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            with open(f'{folder_path}val_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
+            with open(f'{output_folder_path}val_loss_history_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.pickle', 'wb') as handle:
                 pickle.dump(val_loss_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 def test(): 
@@ -132,6 +128,9 @@ def main():
     # perform the configurations 
     args = parser.parse_args()
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    output_folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
+    if not os.path.exists(output_folder_path):
+        os.mkdir(output_folder_path)
     
     # ensure reproducibility 
     torch.manual_seed(args.seed)
@@ -145,7 +144,7 @@ def main():
         transform=transforms, 
         num_samples=args.num_samples
     )
-    trainloader, valloader = dataloader(full_dataset, args)
+    trainloader, valloader = dataloader(full_dataset, args, output_folder_path)
 
     # setting up training parameters 
     model = SiameseModel(emb_size=args.emb_size)
@@ -154,7 +153,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
 
     # model training 
-    train(model, criterion, optimizer, trainloader, valloader, args, device)
+    train(model, criterion, optimizer, trainloader, valloader, args, device, output_folder_path)
 
 if __name__ == '__main__':
     main()
