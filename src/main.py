@@ -85,7 +85,7 @@ def train(model, criterion, optimizer, trainloader, valloader, args, device):
         val_loss_history.append(vloss_history)
 
         if (epoch + 1) % 10 == 0:
-            folder = f'./output/{datetime.today().strftime("%d%m%Y")}/'
+            folder = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
             if not os.path.exists(folder):
                 os.mkdir(folder)
             with open(f'{folder}training_loss_e{epoch}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.txt', 'a+') as f:
