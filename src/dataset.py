@@ -8,6 +8,13 @@ import numpy as np
 import os 
 from torch.utils.data import Dataset, DataLoader 
 
+transforms = nn.Sequential(
+  T.Resize((228, 228)),
+  T.RandomHorizontalFlip(p=0.5),
+  T.RandomVerticalFlip(p=0.5), 
+  T.RandomAffine(degrees=(0, 45), translate=(0., 0.2))
+)
+
 class SiameseDataset(Dataset): 
 
   def __init__(self, images_folder_path, transform=None, num_samples=10, **kwargs):
@@ -53,7 +60,3 @@ class SiameseDataset(Dataset):
   def create_dataset(self): 
     x1, x2, c1, c2, y = self.get_sample()
     return x1, x2, c1, c2, y
-
-transforms = nn.Sequential(
-  T.Resize((228, 228))
-)

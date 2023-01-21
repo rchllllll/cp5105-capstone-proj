@@ -1,8 +1,15 @@
 import argparse, random, copy
 import os, time
 from datetime import datetime
-import torch
 import pickle
+
+import torch
+import torch.nn as nn
+from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights 
+from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet101, ResNet101_Weights
+from torchvision.models import mobilenet_v2, MobileNet_V2_Weights
 
 from dataset import * 
 from model import * 
@@ -58,7 +65,7 @@ def train(model, criterion, optimizer, trainloader, valloader, args, device, out
             output = model(img0, img1).squeeze(1)
             loss = criterion(output, label)
 
-            tcorrect += torch.count_nonzero(label == (output > 0.5)).item()
+            tcorrect += torch.count_nonzero(label == (torch.sigmoid(output) > 0.5)).item()
             ttotal += len(label)
 
             loss.backward()
@@ -84,7 +91,7 @@ def train(model, criterion, optimizer, trainloader, valloader, args, device, out
                 voutput = model(vimg0, vimg1).squeeze(1)
                 vloss = criterion(voutput, vlabel)
                 
-                vcorrect += torch.count_nonzero(vlabel == (voutput > 0.5)).item()
+                vcorrect += torch.count_nonzero(vlabel == (torch.sigmoid(voutput) > 0.5)).item()
                 vtotal += len(vlabel)
 
                 vloss_history.append(vloss.item())
@@ -145,13 +152,15 @@ def main():
                         help='output folder name (default: None)')
     parser.add_argument('--lr-scheduler', default=False, type=bool,
                         help='activate lr scheduler (default: False)')
+    parser.add_argument('--model', type=str, default='resnet18', metavar='S',
+                        help='model (default: resnet18)')
 
     # perform the configurations 
     args = parser.parse_args()
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     if args.output_folder_name != None: 
-        output_folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/{args.output_folder_name}/'
+        output_folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}_{args.output_folder_name}/'
     else: 
         output_folder_path = os.getcwd() + f'/output/{datetime.today().strftime("%d%m%Y")}/'
     if not os.path.exists(output_folder_path):
@@ -178,12 +187,34 @@ def main():
         f.write(f'[{time.ctime()}] setting up training parameters\n')
 
     # setting up training parameters 
-    model = SiameseModel(emb_size=args.emb_size)
+    if args.model == 'resnet18': 
+        base_model = resnet18
+        base_model_weights = ResNet18_Weights.IMAGENET1K_V1
+    elif args.model == 'resnet50': 
+        base_model = resnet50
+        base_model_weights = ResNet50_Weights.IMAGENET1K_V1
+    elif args.model == 'resnet50v2': 
+        base_model = resnet50
+        base_model_weights = ResNet50_Weights.IMAGENET1K_V2
+    elif args.model == 'resnet101': 
+        base_model = resnet101
+        base_model_weights = ResNet101_Weights.IMAGENET1K_V1
+    elif args.model == 'efficientnetv2': 
+        base_model = efficientnet_v2_s
+        base_model_weights = EfficientNet_V2_S_Weights.IMAGENET1K_V1
+    else: # args.model == 'mobilenetv2' 
+        base_model = mobilenet_v2
+        base_model_weights = MobileNet_V2_Weights.IMAGENET1K_V1
+
+    with open(f'{output_folder_path}progress_e{args.epochs}_b{args.batch_size}_lr{args.lr}_n{args.num_samples}_emb{args.emb_size}.txt', 'a+') as f:
+        f.write(f'[{time.ctime()}] siamese network will be based off {args.model}\n')
+
+    model = SiameseModel(emb_size=args.emb_size, base_model=base_model, base_model_weights=base_model_weights)
     model.to(device)
-    criterion = torch.nn.BCELoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr = args.lr)
     if args.lr_scheduler: 
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.99)
     else: 
         lr_scheduler = None
 
