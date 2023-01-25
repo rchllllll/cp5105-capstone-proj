@@ -7,7 +7,7 @@ class SiameseModel(nn.Module):
   # potential configurable arguments 
   # channels: int, n_classes: int, dim_sizes: List[int], kernel_size: int, stride: int, padding: int, **kwargs
   # pretrained model and weights 
-  def __init__(self, emb_size, base_model, base_model_weights): 
+  def __init__(self, base_model, base_model_weights): 
     super(SiameseModel, self).__init__()
 
     self.weights = base_model_weights
@@ -18,13 +18,13 @@ class SiameseModel(nn.Module):
     #     nn.Sigmoid()
     # )
     # self.classifier = nn.Linear(self.siamese.get_submodule(train_nodes[-1]).out_features * 2, 1)
-    # self.classifier = nn.Linear(self.siamese.get_submodule(train_nodes[-1]).out_features, 1)
-    self.feature_extractor = nn.Sequential(
-        nn.Linear(self.siamese.get_submodule(train_nodes[-1]).out_features, 512),
-        nn.ReLU(inplace = True),
-        nn.Linear(512, emb_size)
-    )
-    self.classifier = nn.Linear(emb_size, 1)
+    self.classifier = nn.Linear(self.siamese.get_submodule(train_nodes[-1]).out_features, 1)
+    # self.feature_extractor = nn.Sequential(
+    #     nn.Linear(self.siamese.get_submodule(train_nodes[-1]).out_features, 512),
+    #     nn.ReLU(inplace = True),
+    #     nn.Linear(512, emb_size)
+    # )
+    # self.classifier = nn.Linear(emb_size, 1)
 
   def forward(self, img1, img2): 
     preprocess = self.weights.transforms()
