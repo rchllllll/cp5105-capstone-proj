@@ -35,8 +35,8 @@ class SiameseModel(nn.Module):
     # multiply to get combined feature vector representing the similarity btwn the two
     # combined_features = torch.cat((out1, out2), 1)
     # output = self.classifier(combined_features)
-    fv1 = self.feature_extractor(out1)
-    fv2 = self.feature_extractor(out2)
-    diff = torch.abs(torch.sigmoid(fv1) - torch.sigmoid(fv2))
+    # fv1 = self.feature_extractor(out1)
+    # fv2 = self.feature_extractor(out2)
+    diff = torch.abs(torch.sigmoid(out1) - torch.sigmoid(out2))
     output = self.classifier(diff)
     return output
