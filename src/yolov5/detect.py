@@ -190,7 +190,7 @@ def run(
                             vid_writer[i].release()  # release previous video writer
                         if vid_cap:  # video
                             # fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                            fps = vid_cap.get(1)
+                            fps = vid_cap.get(1) # adjust frames per second
                             w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                             h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         else:  # stream
