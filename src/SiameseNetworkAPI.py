@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights 
 
 from model import * 
-from inferenceDataset import *
+from InferenceDataset import *
 
 torch.manual_seed(0)
 random.seed(0)
@@ -18,7 +18,7 @@ class SiameseNetworkAPI():
 	def __init__(self, obj_tensor, room_img):
 		self.obj_tensor = obj_tensor
 		self.room_img = room_img
-		self.obj_detection_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+		self.obj_detection_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True,  _verbose=False)
 		self.siamese_network_model = SiameseModel(
 			base_model=efficientnet_v2_s, 
 			base_model_weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1
@@ -35,7 +35,7 @@ class SiameseNetworkAPI():
 			crop_array = obj['im']
 			crop_img_of_obj = torch.from_numpy(crop_array.transpose((-1, 0, 1)).copy())
 
-			dataset = inferenceDataset(self.obj_tensor, crop_img_of_obj, transform)
+			dataset = InferenceDataset(self.obj_tensor, crop_img_of_obj, transform)
 			dataloader = DataLoader(dataset, batch_size=self.obj_tensor.shape[0])
 			
 			with torch.no_grad():

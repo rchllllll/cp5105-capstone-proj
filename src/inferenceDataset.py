@@ -12,7 +12,7 @@ transform = nn.Sequential(
 	T.Resize((228, 228))
 )
 
-class inferenceDataset(Dataset):
+class InferenceDataset(Dataset):
 	def __init__(self, all_img_of_obj, crop_img_of_obj, transform=transform, **kwargs):
 		self.all_img_of_obj = all_img_of_obj
 		self.crop_img_of_obj = crop_img_of_obj
