@@ -18,15 +18,20 @@ class SiameseNetworkAPI():
 	def __init__(self, obj_tensor, room_img):
 		self.obj_tensor = obj_tensor
 		self.room_img = room_img
-		self.obj_detection_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True,  _verbose=False)
+		self.obj_detection_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', _verbose=False)
+		# reference: https://github.com/ultralytics/yolov5/issues/5936
+		# use half precision FP16 inference to speed up inference 
+		self.obj_detection_model.half = True
 		self.siamese_network_model = SiameseModel(
 			base_model=efficientnet_v2_s, 
 			base_model_weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1
 			)
 		self.siamese_network_model.load_state_dict(torch.load(model_file_path)) 
 
-	def inference(self): 
-		objects_in_room = self.obj_detection_model(self.room_img)
+	def inference(self):
+		# reference: https://github.com/ultralytics/yolov5/issues/5936
+		# reduce image size to speed up inference
+		objects_in_room = self.obj_detection_model(self.room_img, size=228)
 		all_xy_coords = []
 		all_conf_scores = []
 
@@ -36,8 +41,12 @@ class SiameseNetworkAPI():
 			crop_img_of_obj = torch.from_numpy(crop_array.transpose((-1, 0, 1)).copy())
 
 			dataset = InferenceDataset(self.obj_tensor, crop_img_of_obj, transform)
-			dataloader = DataLoader(dataset, batch_size=self.obj_tensor.shape[0])
+			# reference: https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html
+			# enable asynchronous data loading and data augmentation in separate worker subprocesses
+			dataloader = DataLoader(dataset, batch_size=self.obj_tensor.shape[0], num_workers=2)
 			
+			# reference: https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html
+			# disable gradient calculation for inference 
 			with torch.no_grad():
 				for _, data in enumerate(dataloader):
 					img0, img1 = data 

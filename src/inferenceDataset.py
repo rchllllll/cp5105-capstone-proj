@@ -14,13 +14,13 @@ transform = nn.Sequential(
 
 class InferenceDataset(Dataset):
 	def __init__(self, all_img_of_obj, crop_img_of_obj, transform=transform, **kwargs):
-		self.all_img_of_obj = all_img_of_obj
-		self.crop_img_of_obj = crop_img_of_obj
 		self.transform = transform
+		self.all_img_of_obj = self.transform(all_img_of_obj)
+		self.crop_img_of_obj = self.transform(crop_img_of_obj)
 		
 	def __getitem__(self, index):
-		img0 = self.transform(self.all_img_of_obj[index])
-		img1 = self.transform(self.crop_img_of_obj)
+		img0 = self.all_img_of_obj[index]
+		img1 = self.crop_img_of_obj
 		return  img0, img1
 	
 	def __len__(self):
