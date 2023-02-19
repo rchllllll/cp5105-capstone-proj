@@ -31,7 +31,7 @@ class SiameseNetworkAPI():
 	def inference(self):
 		# reference: https://github.com/ultralytics/yolov5/issues/5936
 		# reduce image size to speed up inference
-		objects_in_room = self.obj_detection_model(self.room_img, size=228)
+		objects_in_room = self.obj_detection_model(self.room_img, size=320)
 		all_xy_coords = []
 		all_conf_scores = []
 
