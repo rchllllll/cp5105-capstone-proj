@@ -18,10 +18,13 @@ class SiameseNetworkAPI():
 	def __init__(self, obj_tensor, room_img):
 		self.obj_tensor = obj_tensor
 		self.room_img = room_img
-		self.obj_detection_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', _verbose=False)
+		self.obj_detection_model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.mlmodel', force_reload=True, _verbose=False)
 		# reference: https://github.com/ultralytics/yolov5/issues/5936
-		# use half precision FP16 inference to speed up inference 
+		# use half precision FP16 inference to speed up inference
 		self.obj_detection_model.half = True
+		# to capture more objects, the conf threshold was reduced 
+		self.obj_detection_model.iou = 0.45
+		self.obj_detection_model.conf = 0.1
 		self.siamese_network_model = SiameseModel(
 			base_model=efficientnet_v2_s, 
 			base_model_weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1
@@ -31,7 +34,7 @@ class SiameseNetworkAPI():
 	def inference(self):
 		# reference: https://github.com/ultralytics/yolov5/issues/5936
 		# reduce image size to speed up inference
-		objects_in_room = self.obj_detection_model(self.room_img, size=320)
+		objects_in_room = self.obj_detection_model(self.room_img, size=640)
 		all_xy_coords = []
 		all_conf_scores = []
 
