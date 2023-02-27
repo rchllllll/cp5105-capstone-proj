@@ -34,5 +34,5 @@ def load_images_from_folder(folder_path, transform=transform):
 	images_list = []
 	for file_path in os.listdir(folder_path): 
 		tensor = transform(read_image(str(Path(folder_path) / file_path)))
-		images_list.append(tensor[:3, :, :])
+		images_list.append(tensor[:3, :, :].permute(0,2,1))
 	return torch.stack(images_list)
