@@ -56,8 +56,8 @@ class SiameseNetworkAPI():
 				for _, data in enumerate(dataloader):
 					img0, img1 = data 
 					output = self.siamese_network_model(img0, img1)
-					final = torch.sigmoid(output) > 0.5
+					final = torch.sigmoid(output)
 					all_xy_coords.append(xy_coords)
-					all_conf_scores.append(final.sum() / final.shape[0])
+					all_conf_scores.append(torch.prod(final, 0))
 					
 		return all_xy_coords, all_conf_scores
