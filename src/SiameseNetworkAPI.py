@@ -12,7 +12,7 @@ np.random.seed(0)
 torch.use_deterministic_algorithms(True)
 
 # tech debt: making it relative path 
-model_file_path = '/Users/racheltay/Documents/school/cp5105-capstone-proj/src/siamese_model_e25_b8_lr1e-05_num8192_emb20.pth'
+model_file_path = '/Users/racheltay/Documents/school/cp5105-capstone-proj/src/moreobj_scheduler_siamese_model_e25_b8_lr1e-05_num8192_emb20'
 # model_file_path = '/Users/racheltay/Documents/school/cp5105-capstone-proj/src/siamese_model_e74_b8_lr1e-05_num8192_emb20.pth'
 
 class SiameseNetworkAPI(): 
