@@ -31,6 +31,7 @@ class SiameseNetworkAPI():
 			base_model_weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1
 			)
 		self.siamese_network_model.load_state_dict(torch.load(model_file_path)) 
+		self.siamese_network_model.eval()
 
 	def inference(self):
 		# reference: https://github.com/ultralytics/yolov5/issues/5936
@@ -54,10 +55,11 @@ class SiameseNetworkAPI():
 			# disable gradient calculation for inference 
 			with torch.no_grad():
 				for _, data in enumerate(dataloader):
-					img0, img1 = data 
+					img0, img1 = data
 					output = self.siamese_network_model(img0, img1)
 					final = torch.sigmoid(output)
 					all_xy_coords.append(xy_coords)
+					# all_conf_scores.append(final)
 					all_conf_scores.append(torch.prod(final, 0))
 					
 		return all_xy_coords, all_conf_scores
